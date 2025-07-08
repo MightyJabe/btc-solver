@@ -196,8 +196,152 @@ typedef struct {
 🎯 **Architecture supports distributed coordination**  
 🎯 **Codebase maintainable and extensible**
 
-## Conclusion
+## Research Findings from Community & Forums
 
-The 125-bit limitation is a **solvable engineering challenge** that requires careful modification of the distance storage format in the hash table. The core arithmetic capabilities already support the required operations.
+### BitcoinTalk Forum Insights
 
-**Recommended approach**: Start with Option A (extended distance field) for simplicity and safety, then optimize for memory if needed. The modification is technically straightforward but requires thorough testing to ensure algorithmic correctness.
+From extensive research of the BitcoinTalk forum discussions ([topic 5244940](https://bitcointalk.org/index.php?topic=5244940.2740)), several critical insights emerged:
+
+#### Technical Explanations from Developers
+
+**WanderingPhilospher's Analysis:**
+> "The limitation is related to the hash table implementation. The hash table is built with a 128-bit maximum for points and distances."
+
+**JeanLucPons' Statement:**
+> The program is "limited to a 125bit interval search" - this is a fundamental design constraint, not a suggestion.
+
+**citb0in's Clarification:**
+> This doesn't mean the entire range is limited to 125 bits, but rather the **search interval width** cannot exceed 125 bits.
+
+#### GPU Implementation Constraints
+
+**Critical Code Limitation Found:**
+```cpp
+if(jumpBit > 128) jumpBit = 128;  // Hard-coded limit in GPU implementation
+```
+
+This confirms the 128-bit boundary is enforced at the GPU kernel level, making it a hard technical constraint rather than a documentation error.
+
+### Historical Puzzle Solutions
+
+#### Successfully Solved Puzzles
+- **Puzzle #110**: Solved by JeanLucPons in 2.1 days using 256x Tesla V100 (2^55.55 operations)
+- **Puzzle #115**: Solved by JeanLucPons in 13 days using 256x Tesla V100 (2^58.36 operations)  
+- **Puzzle #125**: Solved (details not in research)
+- **Puzzle #130**: **Recently solved** by address 1Prestige1zSYorBdz94KA2UbJW3hYLTn4 (13 BTC reward)
+
+#### Unsolved Puzzles
+- **Puzzle #135**: Still unsolved, 13.5 BTC reward available
+- Public key exposed: `02145d2611c823a396ef6712ce0f712f09b9b4f3135e3e0aa3230fb9b6d08d1e16`
+
+### Alternative Implementations Discovery
+
+Research revealed several implementations that extend beyond the 125-bit limitation:
+
+#### 1. **Etayson's EtarKangaroo**
+- **Range support**: Up to 192 bits
+- **Recommendation**: BitcoinTalk users specifically recommend this for ranges >125 bits
+- **Community consensus**: Avoids the original implementation's complications
+
+#### 2. **mikorist's Kangaroo-256-bit**
+- **Range support**: Full 256-bit interval search
+- **Architecture**: Extended implementation of JeanLucPons' original
+- **GitHub**: [mikorist/Kangaroo-256-bit](https://github.com/mikorist/Kangaroo-256-bit)
+
+#### 3. **RetiredC's RCKangaroo**
+- **Range support**: Up to 170 bits
+- **Performance**: 8GKeys/s on RTX 4090, 4GKeys/s on RTX 3090
+- **Algorithm**: SOTA/SOTA+ method (1.4x faster, requires less memory)
+- **Modern implementation**: Most advanced GPU optimization
+
+## Our Test Results Analysis
+
+### The Paradox Explained
+
+Our surprising test results where 135-bit ranges seemed to work perfectly now require reinterpretation:
+
+#### What We Observed
+```
+119-bit: 1030 MK/s (baseline)
+125-bit: 1020 MK/s (99% performance)  
+130-bit: 1078 MK/s (105% performance!)
+135-bit: 1077 MK/s (105% performance!)
+```
+
+#### Why This is Misleading
+
+**Performance ≠ Correctness**: The algorithm running fast doesn't mean it's solving the correct problem.
+
+**Possible Explanations:**
+1. **Range Width Miscalculation**: Algorithm may be internally capping the range
+2. **Efficient Spinning**: Program runs efficiently but searches wrong space
+3. **Internal Range Mapping**: Large ranges might be mapped to smaller internal ranges
+4. **Hash Table Overflow**: Distances might wrap around at 128-bit boundary
+
+#### Evidence of Problem
+- **Range detection discrepancies**: 
+  - 125-bit config → detected as 2^124
+  - 130-bit config → detected as 2^129  
+  - 135-bit config → detected as 2^134
+- **No actual solutions found**: We never verified the algorithm finds correct answers
+- **Consistent memory usage**: All ranges use identical memory (suspicious for exponential growth)
+
+### Validation Requirements
+
+To determine if our tests are meaningful, we need:
+
+#### 1. **Known Solution Tests**
+Test with puzzles where we know the private key:
+```
+Test puzzle #32: Range with known solution 0x100000000000000000000000000000000
+Expected: Algorithm should FIND this key within reasonable time
+```
+
+#### 2. **Progressive Range Validation**
+```
+64-bit range:  Should solve quickly
+80-bit range:  Should solve in hours  
+100-bit range: Should solve in days
+125-bit range: Should work (documented limit)
+126-bit range: CRITICAL - does behavior change?
+135-bit range: Should fail or behave differently
+```
+
+#### 3. **Algorithm Correctness Checks**
+- Monitor distinguished point patterns
+- Verify collision detection is actually working
+- Check if hash table grows as expected
+- Validate jump distance calculations
+
+## Revised Understanding
+
+### The 125-bit Limitation is REAL
+
+Based on research findings:
+
+1. **Hash table constraint**: 128-bit maximum for distance storage with 3 bits reserved for metadata
+2. **GPU implementation**: Hard-coded limits in CUDA kernels
+3. **Community consensus**: Acknowledged limitation with alternative solutions available
+4. **Historical evidence**: No puzzles >125 bits solved with original implementation
+
+### Our Next Steps
+
+Instead of trying to modify JeanLucPons' implementation, we should:
+
+1. **Validate our current results** with known solutions
+2. **Research alternative implementations** (Etayson's, mikorist's, RetiredC's)
+3. **Choose best implementation** for 135-bit support
+4. **Implement proper validation** methodology
+
+## Updated Conclusion
+
+Our initial breakthrough was likely **premature**. The 125-bit limitation is a real technical constraint in the original implementation. However, this doesn't doom our project - multiple alternative implementations exist that support larger ranges.
+
+**Revised Strategy:**
+1. **Validate current findings** with truth tests
+2. **Evaluate alternative Kangaroo implementations** 
+3. **Choose optimal solution** for 135-bit support
+4. **Implement proper testing** methodology
+5. **Proceed with confidence** using proven tools
+
+The project remains viable, but we need to use the right tools for the job rather than trying to extend a fundamentally limited implementation.
