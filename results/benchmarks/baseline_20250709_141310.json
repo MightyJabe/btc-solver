@@ -1,0 +1,17 @@
+{
+  "timestamp": "2025-07-09T14:12:38.300324",
+  "test_type": "baseline_establishment",
+  "hardware": "RTX 3070",
+  "test_duration": "30 seconds",
+  "range": "32-bit",
+  "results": {
+    "kangaroo_classic": {
+      "performance_mk_s": 0,
+      "status": "failed"
+    },
+    "kangaroo_sota": {
+      "performance_mk_s": 0,
+      "status": "failed"
+    }
+  }
+}

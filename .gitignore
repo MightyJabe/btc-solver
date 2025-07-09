@@ -1,0 +1,135 @@
+# Build artifacts
+*.o
+*.obj
+*.exe
+*.dll
+*.so
+*.dylib
+*.a
+*.lib
+
+# Executables
+kangaroo
+rckangaroo
+keyhunt
+
+# Build directories
+obj/
+build/
+debug/
+release/
+bin/
+
+# IDE and editor files
+.vscode/
+.idea/
+*.suo
+*.user
+*.vcproj
+*.vcxproj.user
+*.sln.docstates
+*.swp
+*.swo
+*~
+
+# OS generated files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# CUDA compiled files
+*.cubin
+*.fatbin
+*.ptx
+
+# Log files (except in benchmarks/)
+*.log
+!benchmarks/**/*.log
+
+# Temporary files
+*.tmp
+*.temp
+/tmp/
+temp_*
+
+# Results and data files (except in benchmarks/)
+*.dat
+*.txt
+!benchmarks/**/*.txt
+!research/**/*.txt
+!README*.txt
+!LICENSE*.txt
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+env/
+venv/
+.venv/
+ENV/
+env.bak/
+venv.bak/
+
+# Jupyter notebooks checkpoints
+.ipynb_checkpoints
+
+# Distribution / packaging
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+pip-wheel-metadata/
+share/python-wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+
+# Security and keys
+*.key
+*.pem
+private_keys/
+secrets/
+
+# Large data files
+*.bin
+*.dump
+*.backup
+
+# Runtime files
+core
+*.core
+*.stackdump
+
+# Node.js (if we add any web components)
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Archives
+*.zip
+*.tar.gz
+*.rar
+*.7z
+
+# Test outputs (except curated ones)
+test_output/
+*_output.txt
+*_debug.txt
+benchmark_temp/

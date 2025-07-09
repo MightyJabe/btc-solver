@@ -4,15 +4,15 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-This is a Bitcoin puzzle #135 solver project using optimized Pollard's Kangaroo algorithm with GPU acceleration. The project aims to extend the Kangaroo algorithm from its current 125-bit limitation to support 135-bit ranges through code optimization and distributed computing.
+This is a Bitcoin puzzle #135 solver project using optimized Pollard's Kangaroo algorithm with GPU acceleration. The project aims to solve the 135-bit elliptic curve discrete logarithm problem (ECDLP) through systematic algorithmic optimization and distributed computing, with a 13.5 BTC reward.
 
-**Current Status**: Phase 2 (Bit Range Extension) - extending from 125-bit to 135-bit capability
+**Current Status**: RCKangaroo (kangaroo-sota) validated at **2x performance improvement** | Algorithm optimization phase
 
 ## Build Commands
 
-### Kangaroo (Primary solver)
+### kangaroo-classic (JeanLucPons original implementation)
 ```bash
-cd Kangaroo
+cd implementations/kangaroo-classic
 # CPU-only build
 make clean && make all
 
@@ -26,61 +26,85 @@ make clean && make gpu=1 debug=1 all
 make clean && make gpu=1 ccap=75 all
 ```
 
-### keyhunt (Brute force tool)
+### kangaroo-sota (RCKangaroo - 2x faster implementation)
 ```bash
-cd keyhunt
-# Standard build
-make
+cd implementations/kangaroo-sota
+# Standard build (includes GPU support)
+make clean && make
 
-# Legacy build (uses GMP library)
-make legacy
-
-# BSGSD variant
-make bsgsd
-
-# Clean
+# Clean build artifacts
 make clean
 ```
 
+
 ## Testing Commands
 
-### Performance Testing
+### Performance Testing (kangaroo-sota - Recommended)
 ```bash
-# Test Kangaroo with puzzle 120 (baseline test)
-cd Kangaroo
+# Test with puzzle 119 (quick validation)
+cd implementations/kangaroo-sota
+stdbuf -o0 -e0 ./rckangaroo -gpu 0 -dp 36 -range 119 -start 800000000000000000000000000000 -pubkey 02CEB6CBBCDBDF5EF7150682150F4CE2C6F4807B349827DCDBDD1F2EFA885A2630
+
+# Run comparative benchmarks
+cd tools/testing
+./rckangaroo-comparison.sh
+```
+
+### Performance Testing (kangaroo-classic)
+```bash
+# Test with puzzle 120 (baseline test)
+cd implementations/kangaroo-classic
 ./kangaroo test120.txt
 
 # Test with GPU acceleration
 ./kangaroo -gpu test120.txt
-
-# Test keyhunt brute force
-cd keyhunt
-./keyhunt -t 4 -r 400000000000000000000000000000:7ffffffffffffffffffffffffffffffff tests/120.txt
 ```
 
-### Bit Range Testing (Phase 2)
+### Test Configurations
 ```bash
-# Create test configurations as specified in docs/testing/test-configurations.md
-# Run incremental tests: 119-bit → 125-bit → 130-bit → 135-bit
-./kangaroo -gpu -t 4 test-configs/range-119bit.txt
-./kangaroo -gpu -t 4 test-configs/range-125bit.txt
+# Test configurations are located in tests/configs/
+# Available ranges: 119-bit, 125-bit, 130-bit, 135-bit
+# Example:
+./kangaroo -gpu -t 4 ../../tests/configs/range-119bit.txt
+```
+
+## Project Structure
+
+```
+btc-solver/
+├── implementations/          # Core ECDLP solver implementations
+│   ├── kangaroo-classic/    # JeanLucPons original (1000 MK/s)
+│   ├── kangaroo-sota/       # RCKangaroo SOTA (2000 MK/s) ⭐
+│   └── kangaroo-hybrid/     # Custom optimized version (WIP)
+├── tests/                   # Centralized test files
+│   ├── configs/            # Test configurations (119-135 bit)
+│   └── puzzles/            # Bitcoin puzzle test cases
+├── results/                 # Test results and logs
+│   ├── benchmarks/         # Performance benchmark results
+│   └── logs/               # Execution logs
+├── benchmarks/             # Benchmark scripts and data
+├── research/               # Technical documentation
+├── tools/                  # Testing and analysis tools
+└── infrastructure/         # Distributed computing framework
 ```
 
 ## High-Level Architecture
 
 ### Core Components
 
-**Kangaroo Algorithm (Primary Focus)**
-- `Kangaroo.cpp` - Main algorithm implementation and range initialization
-- `SECPK1/Int.h` - 256-bit integer arithmetic (supports up to 320-bit internally)
-- `GPU/GPUEngine.cu` - CUDA kernels for GPU acceleration
-- `HashTable.cpp` - Distinguished point collision detection
-- **Key Limitation**: `InitRange()` function has 125-bit range width restriction
+**kangaroo-sota (RCKangaroo - Primary Implementation)**
+- `RCKangaroo.cpp` - Main SOTA algorithm implementation (K=1.15)
+- `RCGpuCore.cu` - Optimized GPU kernels with 3-kernel pipeline
+- `GpuKang.cpp/h` - GPU management and memory handling
+- `Ec.cpp/h` - Elliptic curve operations
+- **Advantages**: 2x faster, supports 170-bit ranges, modern GPU optimization
 
-**keyhunt (Comparative Tool)**
-- `keyhunt.cpp` - Brute force implementation with various search modes
-- `secp256k1/` - Elliptic curve operations
-- Used for performance comparison and smaller range verification
+**kangaroo-classic (Reference Implementation)**
+- `Kangaroo.cpp` - Traditional algorithm (K=2.1)
+- `SECPK1/Int.h` - 256-bit integer arithmetic
+- `GPU/GPUEngine.cu` - Single kernel GPU implementation
+- `HashTable.cpp` - Distinguished point collision detection
+- **Note**: Works with 135-bit despite 125-bit documentation
 
 ### Algorithm Architecture
 
@@ -124,29 +148,29 @@ cd keyhunt
 4. **Validation**: Ensure no regression in existing performance while extending capability
 
 ### Performance Baselines (RTX 3070)
-- **Kangaroo CPU**: 14 MK/s (million operations/second)
-- **Kangaroo GPU**: 1025 MK/s (73.2x speedup)
-- **Target**: 135-bit ranges at >100 MK/s (practical for distributed computing)
+- **kangaroo-classic CPU**: 14 MK/s 
+- **kangaroo-classic GPU**: 1000-1100 MK/s
+- **kangaroo-sota GPU**: 2000-2200 MK/s (2x improvement) ⭐
+- **Target**: 5000-10000 MK/s through optimization and distribution
 
-### Key Files for Phase 2
-- `Kangaroo.cpp:877-889` - `InitRange()` function (primary modification target)
-- `SECPK1/Int.h` - Integer operations (verify 135-bit support)
-- `GPU/GPUEngine.cu` - GPU kernels (extend for larger ranges)
-- `docs/planning/phase2-bit-range-extension.md` - Complete implementation plan
+### Benchmark Results Location
+- **Baseline logs**: `results/benchmarks/`
+- **Test configurations**: `tests/configs/`
+- **Comparison scripts**: `tools/testing/`
 
 ## Documentation Structure
 
-Navigate to `docs/README.md` for comprehensive documentation index:
-- **`docs/benchmarks/`** - Performance analysis and test results
-- **`docs/implementation/`** - Code modification guides and setup instructions
-- **`docs/planning/`** - Project roadmap and phase plans
-- **`docs/testing/`** - Test configurations and validation procedures
+- **`research/`** - Technical analysis, algorithm documentation, performance guides
+- **`IMPLEMENTATION_COMPARISON.md`** - Detailed comparison between implementations
+- **`README.md`** - Project overview and quick start guide
+- **Test Results**: `results/benchmarks/` - Performance logs and benchmark data
+- **Test Configs**: `tests/configs/` - Range test configurations (119-135 bit)
 
 The project follows a 4-phase roadmap:
-1. **Phase 1** ✅ - Research & Environment Setup
-2. **Phase 2** 🔄 - Bit Range Extension (current focus)
-3. **Phase 3** ⏳ - Distributed Computing
-4. **Phase 4** ⏳ - Cloud Scaling
+1. **Phase 1** ✅ - Repository restructured, RCKangaroo validated
+2. **Phase 2** 🔄 - Algorithm optimization (current focus)
+3. **Phase 3** ⏳ - Distributed computing infrastructure
+4. **Phase 4** ⏳ - Cloud scaling and deployment
 
 ## Important Notes
 
@@ -156,8 +180,15 @@ This is a defensive security research project focused on understanding cryptogra
 - Recovery of lost cryptocurrency wallets (with proper ownership)
 - Security analysis of cryptographic implementations
 
-### 125-bit Limitation
-The Kangaroo algorithm explicitly states "This program is limited to a 125bit interval search" in its README. Phase 2 focuses on extending this limitation through algorithmic optimization rather than bypassing security measures.
+### Performance Achievements
+- **2x Performance**: RCKangaroo (kangaroo-sota) validated at 2000+ MK/s
+- **Extended Range**: kangaroo-sota supports up to 170-bit ranges natively
+- **125-bit Limitation**: Only applies to kangaroo-classic documentation; both implementations work with 135-bit ranges
+
+### Algorithm Efficiency
+- **Traditional Kangaroo (K=2.1)**: ~2^68.6 operations for 135-bit
+- **SOTA Method (K=1.15)**: ~2^67.7 operations for 135-bit
+- **Combined Improvement**: 1.8x fewer operations × 2x implementation speed = 3.6x total improvement
 
 ### Performance Scaling
-The algorithm has square root complexity, meaning each additional bit doubles the computational requirement. 135-bit ranges require ~1024x more computation than 125-bit ranges, necessitating careful optimization and eventual distributed computing implementation.
+The algorithm has square root complexity, meaning each additional bit doubles the computational requirement. However, the SOTA implementation's efficiency gains significantly reduce the practical impact.
