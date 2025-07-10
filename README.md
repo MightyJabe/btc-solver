@@ -41,18 +41,22 @@ cd tools/testing
 ```
 btc-solver/
 ├── implementations/          # Core ECDLP solver implementations
-│   ├── kangaroo-classic/    # JeanLucPons original (proven stable)
-│   ├── kangaroo-sota/       # RCKangaroo SOTA method (2x faster)
-│   └── kangaroo-hybrid/    # Custom optimized version (future)
-├── results/                 # Test results and performance data
-│   ├── benchmarks/         # Performance benchmark logs
-│   └── logs/               # General execution logs
-├── tests/                   # Test configurations and puzzles
-│   ├── configs/            # Range test configurations
+│   ├── kangaroo-classic/    # JeanLucPons original (1000 MK/s baseline)
+│   ├── kangaroo-sota/       # RCKangaroo SOTA (2000 MK/s, 2x faster)
+│   └── kangaroo-hybrid/     # Custom optimized version (development)
+├── docs/                    # Comprehensive technical documentation
+│   ├── implementation/      # Implementation guides and templates
+│   ├── performance/         # Performance baselines and analysis
+│   ├── research/           # Algorithm development and theory
+│   ├── planning/           # Project roadmap and phase plans
+│   └── archive/            # Historical documentation
+├── tests/                   # Organized test configurations
+│   ├── configs/            # Test configurations (validation, performance, range)
 │   └── puzzles/            # Bitcoin puzzle test cases
-├── research/               # Technical documentation and research
-├── infrastructure/         # Distributed computing framework
-└── tools/                  # Testing, analysis, and visualization
+├── results/                 # Current benchmark results
+│   └── benchmarks/         # Performance data and established baselines
+├── tools/                  # Testing and analysis scripts
+└── infrastructure/         # Distributed computing framework (future)
 ```
 
 ## 🔬 Key Research Findings
@@ -125,10 +129,16 @@ btc-solver/
 
 ## 📚 Documentation
 
-- **[Technical Analysis](research/technical-analysis.md)** - Deep dive into algorithm implementation
-- **[Performance Guide](research/performance-analysis.md)** - Benchmarking and optimization
-- **[Configuration Guide](research/configuration-guide.md)** - Setup and tuning
-- **[Implementation Comparison](IMPLEMENTATION_COMPARISON.md)** - Detailed feature comparison
+### 📖 Main Documentation
+- **[Complete Documentation](docs/README.md)** - Comprehensive documentation index
+- **[Algorithm Development Guide](docs/research/ALGORITHM_DEVELOPMENT_GUIDE.md)** - Build the next best ECDLP algorithm
+- **[Performance Baseline](docs/performance/PERFORMANCE_BASELINE.md)** - Consolidated performance data
+- **[Implementation Template](docs/implementation/IMPLEMENTATION_TEMPLATE.md)** - Standard template for new algorithms
+
+### 🚀 Quick References
+- **[Implementation Guide](implementations/README.md)** - All solver implementations
+- **[Test Guide](tests/README.md)** - Test configurations and validation
+- **[Implementation Comparison](docs/implementation/IMPLEMENTATION_COMPARISON.md)** - Detailed feature comparison
 
 ## 🤝 Contributing
 

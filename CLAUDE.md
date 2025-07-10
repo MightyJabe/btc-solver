@@ -76,16 +76,19 @@ btc-solver/
 │   ├── kangaroo-classic/    # JeanLucPons original (1000 MK/s)
 │   ├── kangaroo-sota/       # RCKangaroo SOTA (2000 MK/s) ⭐
 │   └── kangaroo-hybrid/     # Custom optimized version (WIP)
-├── tests/                   # Centralized test files
-│   ├── configs/            # Test configurations (119-135 bit)
+├── docs/                    # Comprehensive technical documentation
+│   ├── implementation/      # Implementation guides and templates
+│   ├── performance/         # Performance baselines and analysis
+│   ├── research/           # Algorithm development and theory
+│   ├── planning/           # Project roadmap and phase plans
+│   └── archive/            # Historical documentation
+├── tests/                   # Organized test configurations
+│   ├── configs/            # Test configurations (validation, performance, range)
 │   └── puzzles/            # Bitcoin puzzle test cases
-├── results/                 # Test results and logs
-│   ├── benchmarks/         # Performance benchmark results
-│   └── logs/               # Execution logs
-├── benchmarks/             # Benchmark scripts and data
-├── research/               # Technical documentation
-├── tools/                  # Testing and analysis tools
-└── infrastructure/         # Distributed computing framework
+├── results/                 # Current benchmark results
+│   └── benchmarks/         # Performance data and established baselines
+├── tools/                  # Testing and analysis scripts
+└── infrastructure/         # Distributed computing framework (future)
 ```
 
 ## High-Level Architecture
@@ -160,11 +163,17 @@ btc-solver/
 
 ## Documentation Structure
 
-- **`research/`** - Technical analysis, algorithm documentation, performance guides
-- **`IMPLEMENTATION_COMPARISON.md`** - Detailed comparison between implementations
+- **`docs/`** - Comprehensive technical documentation
+  - **`docs/research/`** - Algorithm development guides and mathematical analysis
+  - **`docs/implementation/`** - Implementation guides, templates, and comparisons
+  - **`docs/performance/`** - Performance baselines and optimization insights
+  - **`docs/planning/`** - Project roadmap and phase plans
+  - **`docs/archive/`** - Historical documentation and completed phases
 - **`README.md`** - Project overview and quick start guide
+- **`implementations/README.md`** - Implementation-specific documentation
+- **`tests/README.md`** - Test configurations and validation guide
 - **Test Results**: `results/benchmarks/` - Performance logs and benchmark data
-- **Test Configs**: `tests/configs/` - Range test configurations (119-135 bit)
+- **Test Configs**: `tests/configs/` - Organized test configurations (validation, performance, range)
 
 The project follows a 4-phase roadmap:
 1. **Phase 1** ✅ - Repository restructured, RCKangaroo validated
