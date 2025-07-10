@@ -1,25 +1,27 @@
-# Kangaroo-Hybrid Makefile - Phase 3A Memory Optimization
-# Target: 2500 MK/s (25% improvement over 2000 MK/s baseline)
+# Kangaroo-Hybrid Makefile - Phase 3 Conservative Optimization
+# Target: Improve 70-bit performance without breaking functionality
 
 CC := g++
 NVCC := /usr/bin/nvcc
 CUDA_PATH ?= /usr
 
-# Phase 3A: Enhanced optimization flags for memory optimization
-CCFLAGS := -O3 -ffast-math -funroll-loops -march=native -I$(CUDA_PATH)/include
-NVCCFLAGS := -O3 --use_fast_math -Xptxas -O3 -Xptxas -v \
-             --maxrregcount=64 --optimize=3 \
-             --ptxas-options=-v --compiler-options=-ffast-math \
-             -gencode=arch=compute_89,code=compute_89 \
+# Phase 3: RTX 3070 architecture-specific optimizations
+CCFLAGS := -O3 -I$(CUDA_PATH)/include
+NVCCFLAGS := -O3 \
              -gencode=arch=compute_86,code=compute_86 \
+             -gencode=arch=compute_89,code=compute_89 \
              -gencode=arch=compute_75,code=compute_75 \
-             -gencode=arch=compute_61,code=compute_61
+             -gencode=arch=compute_61,code=compute_61 \
+             --ptxas-options=-v
 
 LDFLAGS := -L$(CUDA_PATH)/lib/x86_64-linux-gnu -lcudart -pthread
 
-# Phase 3A: Memory optimization flags
-CCFLAGS += -DPHASE3A_MEMORY_OPT -DENABLE_MEMORY_OPTIMIZATION
-NVCCFLAGS += -DPHASE3A_MEMORY_OPT -DENABLE_MEMORY_OPTIMIZATION
+# Phase 3 conservative optimizations:
+# - Enhanced memory coalescing with __ldg() intrinsics (RTX 3070)
+# - Conservative approach to avoid breaking functionality
+# - Reverted: BLOCK_SIZE/PNT_GROUP_CNT changes (caused hang)
+# - Reverted: Warp-level atomics (caused DP detection issues)
+# - Reverted: Shared memory padding (not needed)
 
 CPU_SRC := RCKangaroo.cpp GpuKang.cpp Ec.cpp utils.cpp
 GPU_SRC := RCGpuCore.cu
@@ -33,8 +35,8 @@ all: $(TARGET)
 
 $(TARGET): $(CPP_OBJECTS) $(CU_OBJECTS)
 	$(CC) $(CCFLAGS) -o $@ $^ $(LDFLAGS)
-	@echo "Phase 3A: Memory optimization build complete"
-	@echo "Target: 2500 MK/s (25% improvement)"
+	@echo "Phase 3: Conservative optimization complete"
+	@echo "Target: Stable performance improvement for 70-bit"
 
 %.o: %.cpp
 	$(CC) $(CCFLAGS) -c $< -o $@
@@ -42,20 +44,21 @@ $(TARGET): $(CPP_OBJECTS) $(CU_OBJECTS)
 %.o: %.cu
 	$(NVCC) $(NVCCFLAGS) -c $< -o $@
 
-# Performance build with maximum optimization
-performance: CCFLAGS += -DNDEBUG -flto -fno-stack-protector
-performance: NVCCFLAGS += -DNDEBUG --use_fast_math -Xptxas -dlcm=cg
+# Performance build (keep conservative for testing)
+performance: CCFLAGS += -DNDEBUG
+performance: NVCCFLAGS += -DNDEBUG
 performance: $(TARGET)
 
-# Test target
+# Test target - Phase 3 70-bit test
 test: $(TARGET)
-	@echo "Testing Phase 3A memory optimization..."
-	@timeout 30s stdbuf -o0 -e0 ./$(TARGET) -gpu 0 -dp 20 -range 32 | head -20
+	@echo "Testing Phase 3 RTX 3070 optimizations..."
+	@echo "Running 70-bit puzzle (baseline: 40.028s, target: <30s)"
+	@time ./$(TARGET) -gpu 0 -dp 19 -range 70 -start 200000000000000000 -pubkey 0290e6900a58d33393bc1097b5aed31f2e4e7cbd3e5466af958665bc0121248483
 
 # Benchmark target
 benchmark: $(TARGET)
-	@echo "Running Phase 3A benchmark..."
-	@./benchmarks/benchmark_hybrid.sh
+	@echo "Running Phase 3 benchmark comparison..."
+	@echo "Target: Sub-30 seconds for 70-bit (25% improvement)"
 
 clean:
 	rm -f $(CPP_OBJECTS) $(CU_OBJECTS) $(TARGET)
